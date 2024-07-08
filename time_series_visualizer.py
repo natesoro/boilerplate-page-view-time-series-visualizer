@@ -6,6 +6,7 @@ register_matplotlib_converters()
 
 # Import data (Make sure to parse dates. Consider setting index column to 'date'.)
 df = pd.read_csv('fcc-forum-pageviews.csv',parse_dates=['date'])
+df.set_index('date', inplace=True)
 
 # Clean data
 df = df[(df['value']>df['value'].quantile(0.025)) & (df['value']<df['value'].quantile(0.975))]
@@ -13,16 +14,8 @@ df = df[(df['value']>df['value'].quantile(0.025)) & (df['value']<df['value'].qua
 
 def draw_line_plot():
     # Draw line plot
-    """
-    line,ax = plt.subplots(figsize=(15,6), layout='tight')
-    ax = sns.lineplot(data=df)
-    ax.set_title("Daily freeCodeCamp Forum Page Views 5/2016-12/2019")
-    ax.set_xlabel ("Date")
-    ax.set_ylabel ("Page Views")
-    fig=line.figure
-"""
     fig=plt.figure(figsize=(15,6))
-    plt.plot('date', 'value',data=df)
+    plt.plot(df.index.values, 'value',data=df)
     plt.xlabel ('Date')
     plt.ylabel ('Page Views')
     plt.title ('Daily freeCodeCamp Forum Page Views 5/2016-12/2019')
@@ -33,13 +26,20 @@ def draw_line_plot():
 
 def draw_bar_plot():
     # Copy and modify data for monthly bar plot
-    df_bar = None
+    df_bar = df.copy(deep=True)
+    df_bar['date_year']=df_bar.index.strftime('%Y')
+    df_bar['Months']=df_bar.index.strftime('%B')
+    df_bar['date_month_n']=df_bar.index.strftime('%m').astype(int)
+    df_bar_plot=df_bar.groupby(['date_year','Months'])['value'].mean().to_frame()
 
     # Draw bar plot
-
-
-
-
+    ho = df_bar.sort_values(by='date_month_n')['Months'].unique()
+    fig, ax = plt.subplots(figsize=(8, 7))
+    ax.set(xlabel='Years', ylabel='Average Page Views')
+    ax.use_sticky_edges=False
+    p=sns.barplot(x='date_year', y='value', hue='Months', hue_order=ho,
+                data=df_bar_plot, palette='deep', ax=ax)
+    plt.xticks(rotation=90)
 
     # Save image and return fig (don't change this part)
     fig.savefig('bar_plot.png')
