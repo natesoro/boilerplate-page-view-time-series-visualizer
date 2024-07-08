@@ -26,20 +26,19 @@ def draw_line_plot():
 
 def draw_bar_plot():
     # Copy and modify data for monthly bar plot
-    df_bar = df.copy(deep=True)
+    df_bar = df.copy()
     df_bar['date_year']=df_bar.index.strftime('%Y')
     df_bar['Months']=df_bar.index.strftime('%B')
     df_bar['date_month_n']=df_bar.index.strftime('%m').astype(int)
-    df_bar_plot=df_bar.groupby(['date_year','Months'])['value'].mean().to_frame()
+    df_bar_plot=(df_bar.groupby(['date_year','Months'])['value'].mean()).reset_index()
 
     # Draw bar plot
     ho = df_bar.sort_values(by='date_month_n')['Months'].unique()
     fig, ax = plt.subplots(figsize=(8, 7))
-    ax.set(xlabel='Years', ylabel='Average Page Views')
-    ax.use_sticky_edges=False
-    p=sns.barplot(x='date_year', y='value', hue='Months', hue_order=ho,
-                data=df_bar_plot, palette='deep', ax=ax)
+    p=sns.barplot(x='date_year', y='value', hue='Months', hue_order=ho, data=df_bar_plot, ax=ax, palette="tab10")
     plt.xticks(rotation=90)
+    plt.legend(loc="upper left")
+    ax.set(xlabel='Years', ylabel='Average Page Views')
 
     # Save image and return fig (don't change this part)
     fig.savefig('bar_plot.png')
